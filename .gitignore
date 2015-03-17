@@ -1,0 +1,5 @@
+.DS_Store
+*.pyc
+*.json
+
+src/lib/redis-stable

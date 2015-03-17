@@ -1,0 +1,8 @@
+ecdsa
+pycrypto
+fabric
+tornado
+redis
+python-twitter
+oauth2
+pyopenssl
