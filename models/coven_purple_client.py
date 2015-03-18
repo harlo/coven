@@ -98,12 +98,11 @@ class CovenPurpleClient(object):
 				if DEBUG:
 					print e, type(e)
 
-	def tweet_message(self, username, message):
+	def tweet_message(self, otr_ctx, message):
 		if DEBUG:
 			print "tweet message"
 			print message
 
-		otr_ctx = self.__get_context_for_user(username)
 		if otr_ctx[1] != TRUST_LEVELS['IN_COVEN']:
 			return
 
@@ -123,12 +122,11 @@ class CovenPurpleClient(object):
 			if DEBUG:
 				print e, type(e)
 
-	def request_chal_response(self, username):
+	def request_chal_response(self, otr_ctx):
 		if DEBUG:
 			print "request chal response"
 			print username
 
-		otr_ctx = self.__get_context_for_user(username)
 		if otr_ctx[1] != TRUST_LEVELS['IN_INNER_SANCTUM']:
 			return
 
@@ -215,20 +213,23 @@ class CovenPurpleClient(object):
 			if DEBUG:
 				print e, type(e)
 
-	def __on_2fa_priviledge_granted(self, username, fingerprint):
+	def __on_2fa_priviledge_granted(self, username, fingerprint_):
 		if DEBUG:
 			print "on 2FA priviledge granted"
 
+		# lookup user by username
 		otr_ctx = self.__get_context_for_user(username)
 
 		# XXX: how to extract key, fingerprint from otr_ctx?
-		# lookup user by username
 		# if found, and fingerprint matches fingerprint from otr_ctx
-		# and trust level == in_coven:
-		# add to existing trust level
+		if fingerprint != fingerprint_:
+			return
 
 		current_trust = self.purple_account.getTrust(key, fingerprint)
+
+		# and trust level == in_coven:
 		if current_trust >= TRUST_LEVELS['IN_COVEN']:
+			# add to existing trust level
 			self.purple_account.setTrust(key, fingerprint, TRUST_LEVELS['IN_INNER_SANCTUM'])
 
 	def __on_connected(self, purple_con, con_type):
@@ -295,10 +296,10 @@ class CovenPurpleClient(object):
 			locals['COVEN_NAME'] = get_config('COVEN_NAME')
 
 		if otr_message[0] == "~*%s*~" % COVEN_NAME:
-			self.request_chal_response(message.getFrom())
+			self.request_chal_response(otr_ctx)
 			return
 		
-		self.tweet_message(message.getFrom(), otr_message[0])
+		self.tweet_message(otr_ctx, otr_message[0])
 
 	def __on_buddy_list_updated(self, update_type, name=None, alias=None):
 		if DEBUG:

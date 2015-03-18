@@ -41,3 +41,7 @@ class CovenTwitterClient(twitter.Api):
 	def follow_user(self, twitter_id):
 		if DEBUG:
 			print "follow user %s" % twitter_id
+
+	def get_followers(self):
+		if DEBUG:
+			print "get followers"

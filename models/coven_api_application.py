@@ -15,7 +15,7 @@ class CovenAPIApplication(tornado.web.Application, CovenPurpleClient):
 		self.api_routes = {			
 			'twilio' : {
 				'endpoints' : ["chal_response"],
-				'handler' : self.TwilioRouter,
+				'handler' : self.TwilioRouter
 			}
 		}
 

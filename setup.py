@@ -1,5 +1,5 @@
 import os
-from sys import exit
+from sys import exit, argv
 from utils.conf import DEBUG, BASE_DIR, DUtilsKey, append_to_config, build_config, save_config
 
 CEREMONY_PROMPT = "how do you enter the circle?"
@@ -76,6 +76,9 @@ def __setup_vars(with_config):
 		config['PURPLE_OPTS']['connect_server'] = config['JABBER_SERVER']
 		del config['JABBER_SERVER']
 
+		config['PURPLE_OPTS']['jabber_id'] = config['JABBER_ID']
+		del config['JABBER_ID']
+
 		return save_config(config, with_config=with_config)
 
 	return False
@@ -141,7 +144,9 @@ def __setup_coven(with_config):
 		DUtilsKey("CEREMONY_RESPONSE", "Now, set the response to that call phrase.",
 			CEREMONY_RESPONSE, CEREMONY_RESPONSE, None),
 		DUtilsKey("JABBER_SERVER", "What is the hostname of your Jabber server?",
-			JABBER_SERVER, JABBER_SERVER, None)
+			JABBER_SERVER, JABBER_SERVER, None),
+		DUtilsKey("JABBER_ID", "What is your jabber ID?",
+			"none", "none", None)
 	]
 
 	for t in ["ACCESS_TOKEN_KEY", "ACCESS_TOKEN_SECRET", "CONSUMER_KEY", "CONSUMER_SECRET"]:
@@ -166,10 +171,20 @@ def __setup_coven(with_config):
 
 if __name__ == "__main__":
 	res = False
+	with_config = os.path.join(BASE_DIR, ".config.json")
+
+	if len(argv) == 2 and os.path.exists(argv[1]):
+		with_config = argv[1]
 
 	try:
 		if __setup_redis() and __setup_coven(with_config):
-			res = __setup_vars(with_config)
+			if __setup_vars(with_config):
+				from fabric.api import settings, local
+
+				with settings(warn_only=True):
+					local("chmod 0400 %s" % with_config)
+
+				res = True
 	
 	except Exception as e:
 		if DEBUG:
